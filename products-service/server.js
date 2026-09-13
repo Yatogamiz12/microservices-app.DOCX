@@ -12,7 +12,7 @@ app.get("/", (req, res) => {
   res.status(200).json({ service: "products-service", status: "running" });
 });
 
-// 1. READ (Consultar todos los productos)
+// 1. READ (Consultar productos)
 app.get("/products", async (req, res) => {
   try {
     const products = await Product.find();
