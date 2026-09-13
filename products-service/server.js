@@ -1,59 +1,63 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const User = require("./models/User");
+const Product = require("./models/Product");
 
 const app = express();
 app.use(express.json());
 
-const PORT = process.env.PORT || 4001;
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/usersdb";
+const PORT = process.env.PORT || 4002;
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/products-db";
 
-// 1. READ (Consultar usuarios)
-app.get("/users", async (req, res) => {
+app.get("/", (req, res) => {
+  res.status(200).json({ service: "products-service", status: "running" });
+});
+
+// 1. READ (Consultar todos los productos)
+app.get("/products", async (req, res) => {
   try {
-    const users = await User.find();
-    res.status(200).json(users);
+    const products = await Product.find();
+    res.status(200).json(products);
   } catch (error) {
-    res.status(500).json({ message: "Error al consultar usuarios", error: error.message });
+    res.status(500).json({ message: "Error al consultar los productos", error: error.message });
   }
 });
 
-// 2. CREATE (Registrar usuario)
-app.post("/register", async (req, res) => {
+// 2. CREATE (Crear producto)
+app.post("/products", async (req, res) => {
   try {
-    const user = new User(req.body);
-    await user.save();
-    res.status(201).json({ message: "Usuario registrado", user });
+    const product = new Product(req.body);
+    await product.save();
+    res.status(201).json({ message: "Producto agregado correctamente", product });
   } catch (error) {
-    res.status(500).json({ message: "Error al registrar usuario", error: error.message });
+    res.status(500).json({ message: "Error al crear el producto", error: error.message });
   }
 });
 
-// 3. UPDATE (Actualizar usuario por ID)
-app.put("/users/:id", async (req, res) => {
+// 3. UPDATE (Actualizar producto por ID)
+app.put("/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedUser = await User.findByIdAndUpdate(id, req.body, { new: true });
-    if (!updatedUser) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
+    const updatedProduct = await Product.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedProduct) {
+      return res.status(404).send({ message: "Producto no encontrado" });
     }
-    res.json({ message: "Usuario actualizado", user: updatedUser });
+    res.send(updatedProduct);
   } catch (error) {
-    res.status(500).json({ message: "Error al actualizar usuario", error });
+    res.status(500).send({ error: error.message });
   }
 });
 
-// 4. DELETE (Eliminar usuario por ID)
-app.delete("/users/:id", async (req, res) => {
+// 4. DELETE (Eliminar producto por ID)
+app.delete("/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedUser = await User.findByIdAndDelete(id);
-    if (!deletedUser) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
+    const deletedProduct = await Product.findByIdAndDelete(id);
+    if (!deletedProduct) {
+      return res.status(404).send({ message: "Producto no encontrado" });
     }
-    res.json({ message: "Usuario eliminado", user: deletedUser });
+    res.send({ message: "Producto eliminado", deletedProduct });
   } catch (error) {
-    res.status(500).json({ message: "Error al eliminar usuario", error });
+    res.status(500).send({ error: error.message });
   }
 });
 
@@ -62,10 +66,10 @@ async function startServer() {
     await mongoose.connect(MONGO_URI);
     console.log("MongoDB conectado correctamente");
     app.listen(PORT, () => {
-      console.log(`Servicio de Usuarios en http://localhost:${PORT}`);
+      console.log(`Servicio de Productos en http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error("Error conectando a MongoDB:", error);
+    console.error("Error conectando a MongoDB:", error.message);
     process.exit(1);
   }
 }
